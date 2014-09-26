@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Vidius Electric</title>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/q.js/1.0.1/q.js"></script>
+    <script type="text/javascript" src="vendor/tween.min.js"></script>
+    <script type="text/javascript" src="lib/gfx.js"></script>
+    <script type="text/javascript" src="lib/bootlogo.js"></script>
+
+    <style type="text/css">
+      @import url("//cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css");
+
+      body {
+        background: black;
+        color: white;
+      }
+
+      #wrapper {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        -webkit-transform: translate(-50%, -50%);
+        -moz-transform: translate(-50%, -50%);
+      }
+
+      #navigation {
+        display: block;
+        margin: 1em auto;
+        padding: 0.25em 1em;
+
+        width: fit-content;
+        width: -webkit-fit-content;
+        width: -moz-fit-content;
+
+        border-radius: 4px;
+        background: white;
+        color: black;
+
+        font: x-large monospace;
+        text-align: center;
+
+        transition: opacity 200ms ease-in-out;
+        opacity: 0.25;
+      }
+
+      #navigation:hover,
+      #navigation.highlight {
+        opacity: 1;
+      }
+
+      #navigation :link,
+      #navigation :visited {
+        color: black;
+        text-decoration: none;
+      }
+
+      #navigation :link:hover,
+      #navigation :visited:hover {
+        text-shadow: #adf 0 0 4px;
+      }
+
+
+      #navigation li {
+        display: inline-block;
+      }
+
+      #navigation li + li:before {
+        content: ' | ';
+        color: #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrapper">
+      <canvas id="display" width="768" height="576"></canvas>
+      <ul id="navigation">
+        <li><a href="http://erisdiscord.github.io/">me</a></li>
+        <li><a href="/rizcraft">rizcraft</a></li>
+      </ul>
+    </div>
+  </body>
+</html>
