@@ -38,8 +38,6 @@ class Sprite
     y >= @y and y < @y + @height
 
 class DisplayList
-  byPriority = (a, b) -> a.priority - b.priority
-
   constructor: (@context) ->
     @sprites = []
     @scale = 1
@@ -49,19 +47,24 @@ class DisplayList
     # @context.mozImageSmoothingEnabled = no
 
   add: (sprite) ->
-    @sprites.push(sprite) if @sprites.indexOf(sprite) is -1
+    if @sprites.indexOf(sprite) is -1
+      @sprites.push sprite
+      @sort()
     this
 
   remove: (sprite) ->
     @sprites.splice(i, 1) if (i = @sprites.indexOf(sprite)) isnt -1
     this
 
+  sort: ->
+    @sprites.sort (a, b) -> a.priority - b.priority
+
   clear: ->
     @sprites.splice(0)
     this
 
   query: (x, y) ->
-    for sprite in @sprites.sort(byPriority) when sprite.test(x, y)
+    for sprite in @sprites by -1 when sprite.test(x, y)
       return sprite
     null
 
@@ -70,7 +73,7 @@ class DisplayList
     @context.setTransform 1, 0, 0, 1, 0, 0
     @context.scale @scale, @scale
 
-    for {image, x, y} in @sprites.sort(byPriority)
+    for {image, x, y} in @sprites
       @context.drawImage image, 0|x, 0|y
 
     @context.restore()
