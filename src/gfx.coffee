@@ -50,6 +50,7 @@ class DisplayList
 
   add: (sprite) ->
     @sprites.push(sprite) if @sprites.indexOf(sprite) is -1
+    @sprites.sort byPriority
     this
 
   remove: (sprite) ->
@@ -61,7 +62,7 @@ class DisplayList
     this
 
   query: (x, y) ->
-    for sprite in @sprites.sort(byPriority) when sprite.test(x, y)
+    for sprite in @sprites when sprite.test(x, y)
       return sprite
     null
 
@@ -70,7 +71,7 @@ class DisplayList
     @context.setTransform 1, 0, 0, 1, 0, 0
     @context.scale @scale, @scale
 
-    for {image, x, y} in @sprites.sort(byPriority)
+    for {image, x, y} in @sprites
       @context.drawImage image, 0|x, 0|y
 
     @context.restore()
