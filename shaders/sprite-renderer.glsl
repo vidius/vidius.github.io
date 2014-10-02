@@ -21,6 +21,8 @@ uniform vec2 atlasAspect;
 uniform Sprite sprites[MAX_SPRITES];
 uniform int spritesLength;
 
+uniform float time;
+
 void main() {
   vec2 scale = resolution / displayAspect;
 

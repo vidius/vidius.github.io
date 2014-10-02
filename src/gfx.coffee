@@ -131,6 +131,7 @@ class DisplayList
       canvas:@canvas
       fragment:@shaderSource
       variables:
+        time:0
         atlas:@texturePacker.texture
         atlasAspect:{x:textureSize, y:textureSize}
         displayAspect:{x:virtualWidth, y:virtualHeight}
@@ -178,6 +179,7 @@ class DisplayList
       atlasNeedsUpdate = no
     @glsl.sync 'sprites'
     @glsl.set 'spritesLength', @sprites.length
+    @glsl.set 'time', time
     TWEEN.update time
 
 window.gfx = {BitmapFont, DisplayList, Sprite, TexturePacker}
