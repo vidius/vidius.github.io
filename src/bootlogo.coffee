@@ -75,6 +75,18 @@ domReady.then(->
   arrow  = displayList.createSprite(assets['arrow.png']   ).move(80, 176)
   cursor = displayList.createSprite(assets['cursor.png']  ).move( 0,   0)
 
+  debugView = document.querySelector('#debug')
+  debugView.appendChild displayList.texturePacker.texture
+  debugView.appendChild font.image
+
+  document.addEventListener 'keydown', ((event) ->
+    if event.keyCode is 192
+      if debugView.style.display is 'block'
+        debugView.style.display = 'none'
+      else
+        debugView.style.display = 'block'
+  ), no
+
   new TWEEN.Tween(logo1.pos)
   .to({y:80}, 2000)
   .onStart(-> displayList.add logo1)
