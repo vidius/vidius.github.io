@@ -6,11 +6,21 @@ domReady = Q.promise (resolve) ->
 basename = (path) ->
   /([^/]+)$/.exec(path)?[1] ? path
 
+loadText = (obj, src) ->
+  Q.promise((resolve, reject) ->
+    xhr = new XMLHttpRequest
+    xhr.addEventListener 'load', (-> resolve xhr.responseText), no
+    xhr.addEventListener 'error', reject, no
+    xhr.open 'GET', src
+    xhr.send()
+  ).then (text) ->
+    obj[basename src] = text
+
 loadImage = (obj, src) ->
   Q.promise((resolve, reject) ->
     image = new Image
     image.addEventListener 'load', (-> resolve image), no
-    image.addEventListener 'error', ((error) -> reject error), no
+    image.addEventListener 'error', reject, no
     image.src = src
   ).then (image) ->
     obj[basename src] = image
@@ -19,7 +29,7 @@ loadSample = (obj, src) ->
   Q.promise((resolve, reject) ->
     sample = new Audio
     sample.addEventListener 'canplay', (-> resolve sample), no
-    sample.addEventListener 'error', ((error) -> reject error), no
+    sample.addEventListener 'error', reject, no
     sample.src = src
     sample.load()
   ).then (sample) ->
@@ -42,6 +52,7 @@ debounce = (ms, func) ->
 domReady.then(->
   assets = {}
   Q.all([
+    loadText(assets, 'shaders/sprite-renderer.glsl')
     loadImage(assets, 'assets/arrow.png')
     loadImage(assets, 'assets/cursor.png')
     loadImage(assets, 'assets/electric.png')
@@ -53,33 +64,26 @@ domReady.then(->
     loadSample(assets, 'assets/donk.wav')
   ]).thenResolve(assets)
 ).then((assets) ->
-  canvas = document.getElementById('display')
-  context = canvas.getContext('2d')
-
-  displayList = new gfx.DisplayList(context)
-  displayList.scale = 3
-
-  overlay = assets['overlay.png']
-  bang = assets['bang.wav']
-  beep = assets['beep.wav']
-  donk = assets['donk.wav']
+  DisplayList::shaderSource = assets['sprite-renderer.glsl']
+  displayList = new gfx.DisplayList(document.getElementById('display'), 256, 192, 128, assets['overlay.png'])
 
   font = new gfx.BitmapFont(assets['font.png'])
 
-  arrow  = new gfx.Sprite(assets['arrow.png'],    80, 176, 2)
-  cursor = new gfx.Sprite(assets['cursor.png'],    0,   0, 1)
-  logo1  = new gfx.Sprite(assets['vidius.png'],   80, -32, 1)
-  logo2  = new gfx.Sprite(assets['electric.png'], 80, 104, 1)
+  packer = new gfx.TexturePacker(128)
+  logo1  = displayList.createSprite(assets['vidius.png']  ).move(80, -32)
+  logo2  = displayList.createSprite(assets['electric.png']).move(80, 104)
+  arrow  = displayList.createSprite(assets['arrow.png']   ).move(80, 176)
+  cursor = displayList.createSprite(assets['cursor.png']  ).move( 0,   0)
 
-  new TWEEN.Tween(logo1)
+  new TWEEN.Tween(logo1.pos)
   .to({y:80}, 2000)
   .onStart(-> displayList.add logo1)
   .onComplete(->
     displayList.add logo2
 
     setTimeout (->
-      new TWEEN.Tween(arrow)
-      .to({y:arrow.y - 16}, 500)
+      new TWEEN.Tween(arrow.pos)
+      .to({y:arrow.pos.y - 16}, 500)
       .easing(TWEEN.Easing.Quadratic.InOut)
       .repeat(5)
       .yoyo(yes)
@@ -88,7 +92,7 @@ domReady.then(->
       .start()
     ), 500
 
-    bang.play()
+    assets['bang.wav'].play()
 
     document.querySelector('#navigation').classList.add 'highlight'
 
@@ -97,37 +101,27 @@ domReady.then(->
       x = (256 - image.width) / 2
       y = 120 + i * font.height
 
-      sprite = new gfx.Sprite(image, x, y, 2)
+      sprite = displayList.createSprite(image).move(x, y)
       displayList.add sprite
 
       link.addEventListener 'mouseenter', (->
-        cursor.x = x - 16
-        cursor.y = y
+        cursor.move x - 16, y
         displayList.add cursor
-        donk.pause()
 
-        beep.currentTime = 0
-        beep.play()
+        assets['donk.wav'].pause()
+
+        assets['beep.wav'].currentTime = 0
+        assets['beep.wav'].play()
       ), no
 
       link.addEventListener 'mouseleave', (->
         displayList.remove cursor
-        donk.currentTime = 0
-        donk.play()
+
+        assets['beep.wav'].pause()
+
+        assets['donk.wav'].currentTime = 0
+        assets['donk.wav'].play()
       ), no
   ).start()
-
-  tick = (time) ->
-    requestAnimationFrame tick, canvas
-    TWEEN.update time
-
-    context.clearRect 0, 0, canvas.width, canvas.height
-
-    context.globalCompositeOperation = 'source-over'
-    displayList.draw()
-
-    context.globalCompositeOperation = 'multiply'
-    context.drawImage overlay, 0, 0
-
-  requestAnimationFrame tick, canvas
+  displayList.start()
 ).done()

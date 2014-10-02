@@ -28,55 +28,156 @@ class BitmapFont
 
     canvas
 
+class TexturePacker
+  class Node
+    constructor: (@left, @top, @width, @height) ->
+
+    add: (image) ->
+      {width, height} = image
+      if @image?
+        null # occupied
+      else if @a? and @b?
+        @a.add(image) ? @b.add(image)
+      else if width is @width and height is @height
+        @image = image
+        this
+      else if width <= @width and height <= @height
+        dw = @width - width
+        dh = @height - height
+
+        if dw > dh
+          @a = new Node(@left, @top, width, @height)
+          @b = new Node(@left + width, @top, dw, @height)
+        else
+          @a = new Node(@left, @top, @width, height)
+          @b = new Node(@left, @top + height, @width, dh)
+
+        @a.add image
+      else
+        null
+
+    each: (func) ->
+      if @image?
+        func @image, @left, @top, @width, @height
+      else if @a? and @b?
+        @a.each func
+        @b.each func
+      return
+
+    draw: (context) ->
+      if @image?
+        context.drawImage @image, @left, @top
+      else if @a? and @b?
+        @a.draw context
+        @b.draw context
+      return
+
+  constructor: (@textureSize) ->
+    @root = new Node(0, 0, @textureSize, @textureSize)
+    @textureList = []
+
+    @texture = document.createElement('canvas')
+    @texture.width = @textureSize
+    @texture.height = @textureSize
+
+    @context = @texture.getContext('2d')
+
+  add: (image) ->
+    node = @root.add(image)
+    if node?
+      @textureList.push image
+      node.draw @context
+
+      new Sprite(node.left, node.top, node.width, node.height)
+    else
+      throw new Error("failed to allocate texture space")
+
+  # grow: ->
+  #   @textureSize *= 2
+  #   @node = new Node(0, 0, @textureSize, @textureSize)
+  #   @atlas.width = @textureSize
+  #   @atlas.height = @textureSize
+  #   @add(texture) for texture in @textureList.splice(0)
+  #   this
+
+  each: (func) ->
+    @root.each func
+
 class Sprite
-  constructor: (@image, @x, @y, @priority = 0) ->
-    @width = @image.width ? 0
-    @height = @image.height ? 0
+  constructor: (u, v, w, h) ->
+    @pos = x:0, y:0
+    @size = x:w, y:h
+    @uv = x:u, y:v
+    @priority = 1
+
+  move: (x, y) ->
+    @pos.x = x
+    @pos.y = y
+    this
+
+  setPriority: (@priority) -> this
 
   test: (x, y) ->
     x >= @x and x < @x + @width and
     y >= @y and y < @y + @height
 
 class DisplayList
-  constructor: (@context) ->
+  constructor: (@canvas, virtualWidth, virtualHeight, textureSize, overlay) ->
+    @texturePacker = new TexturePacker(textureSize)
     @sprites = []
-    @scale = 1
 
-    # @context.imageSmoothingEnabled = no
-    # @context.webkitImageSmoothingEnabled = no
-    # @context.mozImageSmoothingEnabled = no
+    displayList = this
+    glsl = Glsl
+      canvas:@canvas
+      fragment:@shaderSource
+      variables:
+        atlas:@texturePacker.texture
+        atlasAspect:{x:textureSize, y:textureSize}
+        displayAspect:{x:virtualWidth, y:virtualHeight}
+        overlay:overlay
+        sprites:@sprites
+        spritesLength:@sprites.length
+      init:-> displayList.glsl = this
+      update:@__update
+
+  createSprite: (image, add = yes) ->
+    sprite = @texturePacker.add(image)
+    @atlasNeedsUpdate = yes
+    sprite
+
+  # destroySprite: (sprite) ->
+  #   @remove sprite
+  #   @texturePacker.remove sprite
+  #   @atlasNeedsUpdate = yes
+  #   return
 
   add: (sprite) ->
     if @sprites.indexOf(sprite) is -1
       @sprites.push sprite
-      @sort()
+      @sprites.sort (a, b) -> b.priority - a.priority
     this
 
   remove: (sprite) ->
     @sprites.splice(i, 1) if (i = @sprites.indexOf(sprite)) isnt -1
     this
 
-  sort: ->
-    @sprites.sort (a, b) -> a.priority - b.priority
-
   clear: ->
     @sprites.splice(0)
-    this
 
-  query: (x, y) ->
-    for sprite in @sprites by -1 when sprite.test(x, y)
-      return sprite
-    null
+  start: ->
+    @glsl.start()
 
-  draw: ->
-    @context.save()
-    @context.setTransform 1, 0, 0, 1, 0, 0
-    @context.scale @scale, @scale
+  stop: ->
+    @glsl.stop()
 
-    for {image, x, y} in @sprites
-      @context.drawImage image, 0|x, 0|y
+  __update: (time, dt) =>
+    if @atlasNeedsUpdate
+      atlasSize = @texturePacker.textureSize
+      @glsl.sync 'atlas'
+      @glsl.set 'atlasAspect', x:atlasSize, y:atlasSize
+      atlasNeedsUpdate = no
+    @glsl.sync 'sprites'
+    @glsl.set 'spritesLength', @sprites.length
+    TWEEN.update time
 
-    @context.restore()
-    return
-
-window.gfx = {BitmapFont, DisplayList, Sprite}
+window.gfx = {BitmapFont, DisplayList, Sprite, TexturePacker}
