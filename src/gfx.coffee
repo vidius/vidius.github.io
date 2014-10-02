@@ -66,6 +66,7 @@ class TexturePacker
 
     draw: (context) ->
       if @image?
+        context.clearRect @left, @top, @width, @height
         context.drawImage @image, @left, @top
       else if @a? and @b?
         @a.draw context
