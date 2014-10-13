@@ -1,4 +1,6 @@
-class BitmapFont
+vidius = (window.vidius ?= {})
+
+class vidius.BitmapFont
   constructor: (@image) ->
     @width = @image.width / 16
     @height = @image.height / 16
@@ -28,7 +30,7 @@ class BitmapFont
 
     canvas
 
-class TexturePacker
+class vidius.TexturePacker
   class Node
     constructor: (@left, @top, @width, @height) ->
 
@@ -104,7 +106,7 @@ class TexturePacker
   each: (func) ->
     @root.each func
 
-class Sprite
+class vidius.Sprite
   constructor: (u, v, w, h) ->
     @pos = x:0, y:0
     @size = x:w, y:h
@@ -122,7 +124,7 @@ class Sprite
     x >= @x and x < @x + @width and
     y >= @y and y < @y + @height
 
-class DisplayList
+class vidius.DisplayList
   constructor: (@canvas, virtualWidth, virtualHeight, textureSize, overlay) ->
     @texturePacker = new TexturePacker(textureSize)
     @sprites = []
@@ -182,5 +184,3 @@ class DisplayList
     @glsl.set 'spritesLength', @sprites.length
     @glsl.set 'time', time
     TWEEN.update time
-
-window.gfx = {BitmapFont, DisplayList, Sprite, TexturePacker}

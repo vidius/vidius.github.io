@@ -32,11 +32,11 @@ domReady.then(->
   .wait()
 ).then((assets) ->
   DisplayList::shaderSource = assets.sprite_renderer_glsl
-  displayList = new gfx.DisplayList(document.getElementById('display'), 256, 192, 128, assets.overlay_png)
+  displayList = new vidius.DisplayList(document.getElementById('display'), 256, 192, 128, assets.overlay_png)
 
-  font = new gfx.BitmapFont(assets.font_png)
+  font = new vidius.BitmapFont(assets.font_png)
 
-  packer = new gfx.TexturePacker(128)
+  packer = new vidius.TexturePacker(128)
   logo1  = displayList.createSprite(assets.vidius_png  ).move(80, -32)
   logo2  = displayList.createSprite(assets.electric_png).move(80, 104)
   arrow  = displayList.createSprite(assets.arrow_png   ).move(80, 176)
