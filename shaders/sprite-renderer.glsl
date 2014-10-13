@@ -29,19 +29,22 @@ void main() {
   vec2 p = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y) / scale;
   vec2 uv = gl_FragCoord.xy / resolution.xy;
 
-  vec4 bg = vec4(1.0);
-  vec4 color = vec4(0.0);
+  vec3 color = vec3(1.0);
 
   for (int i = 0; i < MAX_SPRITES; ++i) {
     if (i >= spritesLength) break;
 
     Sprite sprite = sprites[i];
-    if (!all(lessThanEqual(sprite.pos, p))) continue;
-    if (!all(greaterThan(sprite.pos + sprite.size, p))) continue;
-
-    vec2 sampleUV = (floor(sprite.uv + p - sprite.pos) + vec2(0.5)) / atlasAspect;
-    color = texture2D(atlas, vec2(sampleUV.x, 1.0 - sampleUV.y));
+    sprite.pos = floor(sprite.pos);
+    if (
+      all(lessThanEqual(sprite.pos, p)) &&
+      all(greaterThan(sprite.pos + sprite.size, p))
+    ) {
+      vec2 sampleUV = (floor(sprite.uv + p - sprite.pos) + vec2(0.5)) / atlasAspect;
+      vec4 spriteColor = texture2D(atlas, vec2(sampleUV.x, 1.0 - sampleUV.y));
+      color = mix(color, spriteColor.rgb, spriteColor.a);
+    }
   }
 
-  gl_FragColor = vec4(mix(bg.rgb, color.rgb, color.a) * texture2D(overlay, uv).rgb, 1.0);
+  gl_FragColor = vec4(color.rgb * texture2D(overlay, uv).rgb, 1.0);
 }
