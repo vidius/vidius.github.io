@@ -18,7 +18,7 @@ debounce = (ms, func) ->
     return
 
 domReady.then(->
-  location.hash = '#toc' unless document.querySelector("#{location.hash}.section")
+  location.hash = '#toc' unless location.hash and document.querySelector("#{location.hash}.section")
   (new vidius.Assets)
   .loadText('shaders/sprite-renderer.glsl')
   .loadImage('assets/arrow.png')
