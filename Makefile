@@ -1,7 +1,7 @@
 BROWSERIFY = node_modules/.bin/browserify
 COFFEE = node_modules/.bin/coffee
 
-all : lib/bootlogo.js lib/gfx.js
+all : lib/bootlogo.js lib/gfx.js lib/assets.js
 
 clean :
 	rm -f lib/*.js

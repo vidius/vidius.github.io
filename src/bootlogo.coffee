@@ -3,38 +3,6 @@ domReady = Q.promise (resolve) ->
   document.addEventListener 'DOMContentLoaded', handler, no
   window.addEventListener 'load', handler, no
 
-basename = (path) ->
-  /([^/]+)$/.exec(path)?[1] ? path
-
-loadText = (obj, src) ->
-  Q.promise((resolve, reject) ->
-    xhr = new XMLHttpRequest
-    xhr.addEventListener 'load', (-> resolve xhr.responseText), no
-    xhr.addEventListener 'error', reject, no
-    xhr.open 'GET', src
-    xhr.send()
-  ).then (text) ->
-    obj[basename src] = text
-
-loadImage = (obj, src) ->
-  Q.promise((resolve, reject) ->
-    image = new Image
-    image.addEventListener 'load', (-> resolve image), no
-    image.addEventListener 'error', reject, no
-    image.src = src
-  ).then (image) ->
-    obj[basename src] = image
-
-loadSample = (obj, src) ->
-  Q.promise((resolve, reject) ->
-    sample = new Audio
-    sample.addEventListener 'canplay', (-> resolve sample), no
-    sample.addEventListener 'error', reject, no
-    sample.src = src
-    sample.load()
-  ).then (sample) ->
-    obj[basename src] = sample
-
 debounce = (ms, func) ->
   timeout = null
   savedContext = null
@@ -50,30 +18,29 @@ debounce = (ms, func) ->
     return
 
 domReady.then(->
-  assets = {}
-  Q.all([
-    loadText(assets, 'shaders/sprite-renderer.glsl')
-    loadImage(assets, 'assets/arrow.png')
-    loadImage(assets, 'assets/cursor.png')
-    loadImage(assets, 'assets/electric.png')
-    loadImage(assets, 'assets/font.png')
-    loadImage(assets, 'assets/overlay.png')
-    loadImage(assets, 'assets/vidius.png')
-    loadSample(assets, 'assets/bang.wav')
-    loadSample(assets, 'assets/beep.wav')
-    loadSample(assets, 'assets/donk.wav')
-  ]).thenResolve(assets)
+  (new vidius.Assets)
+  .loadText('shaders/sprite-renderer.glsl')
+  .loadImage('assets/arrow.png')
+  .loadImage('assets/cursor.png')
+  .loadImage('assets/electric.png')
+  .loadImage('assets/font.png')
+  .loadImage('assets/overlay.png')
+  .loadImage('assets/vidius.png')
+  .loadSample('assets/bang.wav')
+  .loadSample('assets/beep.wav')
+  .loadSample('assets/donk.wav')
+  .wait()
 ).then((assets) ->
-  DisplayList::shaderSource = assets['sprite-renderer.glsl']
-  displayList = new gfx.DisplayList(document.getElementById('display'), 256, 192, 128, assets['overlay.png'])
+  DisplayList::shaderSource = assets.sprite_renderer_glsl
+  displayList = new gfx.DisplayList(document.getElementById('display'), 256, 192, 128, assets.overlay_png)
 
-  font = new gfx.BitmapFont(assets['font.png'])
+  font = new gfx.BitmapFont(assets.font_png)
 
   packer = new gfx.TexturePacker(128)
-  logo1  = displayList.createSprite(assets['vidius.png']  ).move(80, -32)
-  logo2  = displayList.createSprite(assets['electric.png']).move(80, 104)
-  arrow  = displayList.createSprite(assets['arrow.png']   ).move(80, 176)
-  cursor = displayList.createSprite(assets['cursor.png']  ).move( 0,   0)
+  logo1  = displayList.createSprite(assets.vidius_png  ).move(80, -32)
+  logo2  = displayList.createSprite(assets.electric_png).move(80, 104)
+  arrow  = displayList.createSprite(assets.arrow_png   ).move(80, 176)
+  cursor = displayList.createSprite(assets.cursor_png  ).move( 0,   0)
 
   debugView = document.querySelector('#debug')
   debugView.appendChild displayList.texturePacker.texture
@@ -104,7 +71,7 @@ domReady.then(->
       .start()
     ), 500
 
-    assets['bang.wav'].play()
+    assets.bang_wav.play()
 
     document.querySelector('#navigation').classList.add 'highlight'
 
@@ -120,19 +87,19 @@ domReady.then(->
         cursor.move x - 16, y
         displayList.add cursor
 
-        assets['donk.wav'].pause()
+        assets.donk_wav.pause()
 
-        assets['beep.wav'].currentTime = 0
-        assets['beep.wav'].play()
+        assets.beep_wav.currentTime = 0
+        assets.beep_wav.play()
       ), no
 
       link.addEventListener 'mouseleave', (->
         displayList.remove cursor
 
-        assets['beep.wav'].pause()
+        assets.beep_wav.pause()
 
-        assets['donk.wav'].currentTime = 0
-        assets['donk.wav'].play()
+        assets.donk_wav.currentTime = 0
+        assets.donk_wav.play()
       ), no
   ).start()
   displayList.start()
