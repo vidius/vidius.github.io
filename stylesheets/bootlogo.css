@@ -16,7 +16,15 @@ body {
   background: white;
 }
 
-#navigation {
+#wrapper > .section {
+  display: none;
+}
+
+#wrapper > .section:target {
+  display: block;
+}
+
+.navigation {
   display: block;
   margin: 1em auto;
   padding: 0.25em 1em;
@@ -36,28 +44,28 @@ body {
   opacity: 0.25;
 }
 
-#navigation:hover,
-#navigation.highlight {
+.navigation:hover,
+.navigation.highlight {
   opacity: 1;
 }
 
-#navigation :link,
-#navigation :visited {
+.navigation :link,
+.navigation :visited {
   color: black;
   text-decoration: none;
 }
 
-#navigation :link:hover,
-#navigation :visited:hover {
+.navigation :link:hover,
+.navigation :visited:hover {
   text-shadow: #adf 0 0 4px;
 }
 
 
-#navigation li {
+.navigation li {
   display: inline-block;
 }
 
-#navigation li + li:before {
+.navigation li + li:before {
   content: ' | ';
   color: #aaa;
 }
