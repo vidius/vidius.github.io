@@ -31,7 +31,7 @@ domReady.then(->
   .loadSample('assets/donk.wav')
   .wait()
 ).then((assets) ->
-  DisplayList::shaderSource = assets.sprite_renderer_glsl
+  vidius.DisplayList::shaderSource = assets.sprite_renderer_glsl
   displayList = new vidius.DisplayList(document.getElementById('display'), 256, 192, 128, assets.overlay_png)
 
   font = new vidius.BitmapFont(assets.font_png)

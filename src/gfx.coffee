@@ -91,7 +91,7 @@ class vidius.TexturePacker
       @textureList.push image
       node.draw @context
 
-      new Sprite(node.left, node.top, node.width, node.height)
+      new vidius.Sprite(node.left, node.top, node.width, node.height)
     else
       throw new Error("failed to allocate texture space")
 
@@ -126,7 +126,7 @@ class vidius.Sprite
 
 class vidius.DisplayList
   constructor: (@canvas, virtualWidth, virtualHeight, textureSize, overlay) ->
-    @texturePacker = new TexturePacker(textureSize)
+    @texturePacker = new vidius.TexturePacker(textureSize)
     @sprites = []
 
     displayList = this
